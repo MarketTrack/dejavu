@@ -8,7 +8,6 @@ import argparse
 
 from dejavu import Dejavu
 from dejavu.recognize import FileRecognizer
-from dejavu.recognize import MicrophoneRecognizer
 from argparse import RawTextHelpFormatter
 
 warnings.filterwarnings("ignore")
@@ -84,9 +83,7 @@ if __name__ == '__main__':
         source = args.recognize[0]
         opt_arg = args.recognize[1]
 
-        if source in ('mic', 'microphone'):
-            song = djv.recognize(MicrophoneRecognizer, seconds=opt_arg)
-        elif source == 'file':
+        if source == 'file':
             song = djv.recognize(FileRecognizer, opt_arg)
         print(song)
 

@@ -212,7 +212,7 @@ class DejavuTest(object):
             song = path_to_songname(f).split("_")[0]  
             line = self.get_line_id(song)
             result = subprocess.check_output([
-                "python", 
+                "/home/ubuntu/.local/share/virtualenvs/dejavu-YUUNiS5o/bin/python", 
                 "dejavu.py",
                 '-r',
                 'file', 
