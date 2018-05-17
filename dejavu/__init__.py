@@ -1,11 +1,7 @@
 from dejavu.database import get_database, Database
 import dejavu.decoder as decoder
 from dejavu import fingerprint
-import multiprocessing
 import os
-import traceback
-import sys
-
 
 class Dejavu(object):
 
@@ -41,57 +37,6 @@ class Dejavu(object):
         for song in self.songs:
             song_hash = song[Database.FIELD_FILE_SHA1]
             self.songhashes_set.add(song_hash)
-
-    def fingerprint_directory(self, path, extensions, nprocesses=None):
-        # Try to use the maximum amount of processes if not given.
-        try:
-            nprocesses = nprocesses or multiprocessing.cpu_count()
-        except NotImplementedError:
-            nprocesses = 1
-        else:
-            nprocesses = 1 if nprocesses <= 0 else nprocesses
-
-        pool = multiprocessing.Pool(nprocesses)
-
-        filenames_to_fingerprint = []
-        for filename, _ in decoder.find_files(path, extensions):
-
-            # don't refingerprint already fingerprinted files
-            if decoder.unique_hash(filename) in self.songhashes_set:
-                print("%s already fingerprinted, continuing..." % filename)
-                continue
-
-            filenames_to_fingerprint.append(filename)
-
-        # Prepare _fingerprint_worker input
-        worker_input = zip(filenames_to_fingerprint,
-                           [self.limit] * len(filenames_to_fingerprint))
-
-        # Send off our tasks
-        iterator = pool.imap_unordered(_fingerprint_worker,
-                                       worker_input)
-
-        # Loop till we have all of them
-        while True:
-            try:
-                song_name, hashes, file_hash = iterator.next()
-            except multiprocessing.TimeoutError:
-                continue
-            except StopIteration:
-                break
-            except:
-                print("Failed fingerprinting")
-                # Print traceback because we can't reraise it here
-                traceback.print_exc(file=sys.stdout)
-            else:
-                sid = self.db.insert_song(song_name, file_hash)
-
-                self.db.insert_hashes(sid, hashes)
-                self.db.set_song_fingerprinted(sid)
-                self.get_fingerprinted_songs()
-
-        pool.close()
-        pool.join()
 
     def fingerprint_file(self, filepath, song_name=None):
         songname = decoder.path_to_songname(filepath)

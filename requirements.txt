@@ -9,4 +9,3 @@ python-dateutil==2.6.1
 pytz==2017.2
 scipy==0.19.1
 six==1.10.0
-wavio==0.0.3

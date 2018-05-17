@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.mlab as mlab
-import matplotlib.pyplot as plt
 from scipy.ndimage.filters import maximum_filter
 from scipy.ndimage.morphology import (generate_binary_structure,
                                       iterate_structure, binary_erosion)
@@ -119,6 +118,7 @@ def get_2D_peaks(arr2D, plot=False, amp_min=DEFAULT_AMP_MIN):
         time_idx.append(x[0])
     
     if plot:
+        import matplotlib.pyplot as plt
         # scatter of the peaks
         fig, ax = plt.subplots()
         ax.imshow(arr2D)

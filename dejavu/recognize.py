@@ -1,11 +1,8 @@
 import dejavu.fingerprint as fingerprint
 import dejavu.decoder as decoder
-import numpy as np
 import time
 
-
 class BaseRecognizer(object):
-
     def __init__(self, dejavu):
         self.dejavu = dejavu
         self.Fs = fingerprint.DEFAULT_FS
@@ -18,7 +15,6 @@ class BaseRecognizer(object):
 
     def recognize(self):
         pass  # base class does nothing
-
 
 class FileRecognizer(BaseRecognizer):
     def __init__(self, dejavu):
@@ -38,6 +34,3 @@ class FileRecognizer(BaseRecognizer):
 
     def recognize(self, filename):
         return self.recognize_file(filename)
-
-class NoRecordingError(Exception):
-    pass
