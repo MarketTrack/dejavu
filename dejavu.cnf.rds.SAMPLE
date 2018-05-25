@@ -10,5 +10,6 @@
         "user": "sonus_master",
         "passwd": "password", 
         "db": "dejavu"
-    }
+    },
+    "fingerprint_limit": -1
 }

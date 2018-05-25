@@ -12,7 +12,7 @@ IDX_TIME_J = 1
 ######################################################################
 # Sampling rate, related to the Nyquist conditions, which affects
 # the range frequencies we can detect.
-DEFAULT_FS = 44100
+#DEFAULT_FS = 48000
 
 ######################################################################
 # Size of the FFT window, affects frequency granularity
@@ -60,7 +60,7 @@ PEAK_SORT = True
 # with potentially lesser collisions of matches.
 FINGERPRINT_REDUCTION = 20
 
-def fingerprint(channel_samples, Fs=DEFAULT_FS,
+def fingerprint(channel_samples, Fs,
                 wsize=DEFAULT_WINDOW_SIZE,
                 wratio=DEFAULT_OVERLAP_RATIO,
                 fan_value=DEFAULT_FAN_VALUE,

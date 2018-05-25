@@ -2,7 +2,6 @@
 
 So far Dejavu has only been tested on Unix systems.
 
-* [`pyaudio`](http://people.csail.mit.edu/hubert/pyaudio/) for grabbing audio from microphone
 * [`ffmpeg`](https://github.com/FFmpeg/FFmpeg) for converting audio files to .wav format
 * [`pydub`](http://pydub.com/), a Python `ffmpeg` wrapper
 * [`numpy`](http://www.numpy.org/) for taking the FFT of audio signals

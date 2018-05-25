@@ -9,7 +9,9 @@ scipy = ">=0.19.1"
 numpy = ">=1.13.1"
 pydub = "==0.20.0"
 PyMySQL = "==0.7.11"
-chalice = "*"
+flask = "*"
+flask-restful = "*"
+requests = "*"
 
 [dev-packages]
 pylint = "*"

@@ -2,7 +2,8 @@
     "database": {
         "host": "localhost",
         "user": "root",
-        "passwd": "", 
+        "passwd": "password", 
         "db": "dejavu"
-    }
+    },
+    "fingerprint_limit": -1
 }

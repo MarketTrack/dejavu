@@ -21,6 +21,12 @@ def unique_hash(filepath, blocksize=2**20):
             s.update(buf)
     return s.hexdigest().upper()
 
+def unique_data_hash(data, blocksize=2**20):
+    s = sha1()
+    for idx in range(0, len(data), blocksize):
+        chunk = data[idx:idx+blocksize]
+        s.update(str(chunk).encode('utf-8'))
+    return s.hexdigest().upper()
 
 def find_files(path, extensions):
     # Allow both with ".mp3" and without "mp3" to be used for extensions
@@ -58,9 +64,34 @@ def read(filename, limit=None):
             channels.append(data[chn::audiofile.channels])
 
         fs = audiofile.frame_rate
+    except:
+        pass
 
     return channels, audiofile.frame_rate, unique_hash(filename)
 
+def read_stream(wav_data, limit=None):
+    """
+    Reads any file supported by pydub (ffmpeg) and returns the data contained
+    within. If file reading fails due to input being a 24-bit wav file, fail.
+
+    Can be optionally limited to a certain amount of seconds from the start
+    of the file by specifying the `limit` parameter. This is the amount of
+    seconds from the start of the file.
+
+    returns: (channels, samplerate)
+    """
+    # pydub does not support 24-bit wav files
+    try:
+        if limit:
+            wav_data = wav_data[:limit * 1000]
+
+        channels = []
+        channels.append(wav_data)
+
+    except:
+        pass
+
+    return channels
 
 def path_to_songname(path):
     """

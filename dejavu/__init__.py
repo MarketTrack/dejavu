@@ -2,6 +2,7 @@ from dejavu.database import get_database, Database
 import dejavu.decoder as decoder
 from dejavu import fingerprint
 import os
+from pymysql.err import IntegrityError
 
 class Dejavu(object):
 
@@ -28,40 +29,44 @@ class Dejavu(object):
         self.limit = self.config.get("fingerprint_limit", None)
         if self.limit == -1:  # for JSON compatibility
             self.limit = None
-        self.get_fingerprinted_songs()
 
-    def get_fingerprinted_songs(self):
-        # get songs previously indexed
-        self.songs = self.db.get_songs()
-        self.songhashes_set = set()  # to know which ones we've computed before
-        for song in self.songs:
-            song_hash = song[Database.FIELD_FILE_SHA1]
-            self.songhashes_set.add(song_hash)
+    def fingerprint_stream(self, wav_data, sample_rate, song_name):
+        data_hash = decoder.unique_data_hash(wav_data)
+        try:
+            sid = self.db.insert_song(song_name, data_hash)
+        except IntegrityError as e:
+            return False
+
+        song_name, hashes = _fingerprint_stream_worker(
+            wav_data,
+            self.limit
+        )
+
+        self.db.insert_hashes(sid, hashes)
+        self.db.set_song_fingerprinted(sid)
+
+        return True
 
     def fingerprint_file(self, filepath, song_name=None):
         songname = decoder.path_to_songname(filepath)
         song_hash = decoder.unique_hash(filepath)
         song_name = song_name or songname
-        # don't refingerprint already fingerprinted files
-        if song_hash in self.songhashes_set:
-            print("%s already fingerprinted, continuing..." % song_name)
-        else:
-            song_name, hashes, file_hash = _fingerprint_worker(
-                filepath,
-                self.limit,
-                song_name=song_name
-            )
-            sid = self.db.insert_song(song_name, file_hash)
+        
+        song_name, hashes, file_hash = _fingerprint_worker(
+            filepath,
+            self.limit,
+            song_name=song_name
+        )
+        sid = self.db.insert_song(song_name, file_hash)
 
-            self.db.insert_hashes(sid, hashes)
-            self.db.set_song_fingerprinted(sid)
-            self.get_fingerprinted_songs()
+        self.db.insert_hashes(sid, hashes)
+        self.db.set_song_fingerprinted(sid)
 
-    def find_matches(self, samples, Fs=fingerprint.DEFAULT_FS):
+    def find_matches(self, samples, Fs):
         hashes = fingerprint.fingerprint(samples, Fs=Fs)
         return self.db.return_matches(hashes)
 
-    def align_matches(self, matches):
+    def align_matches(self, matches, Fs):
         """
             Finds hash matches that align in time with other matches and finds
             consensus about which hashes are "true" signal from the audio.
@@ -95,7 +100,7 @@ class Dejavu(object):
             return None
 
         # return match info
-        nseconds = round(float(largest) / fingerprint.DEFAULT_FS *
+        nseconds = round(float(largest) / Fs *
                          fingerprint.DEFAULT_WINDOW_SIZE *
                          fingerprint.DEFAULT_OVERLAP_RATIO, 5)
         song = {
@@ -111,6 +116,16 @@ class Dejavu(object):
         r = recognizer(self)
         return r.recognize(*options, **kwoptions)
 
+def _fingerprint_stream_worker(wav_data, sample_rate, limit=None):
+
+    channels = decoder.read_stream(wav_data, limit)
+    result = set()
+
+    for _, channel in enumerate(channels):
+        hashes = fingerprint.fingerprint(channel, Fs=sample_rate)
+        result |= set(hashes)
+
+    return result
 
 def _fingerprint_worker(filename, limit=None, song_name=None):
     # Pool.imap sends arguments as tuples so we have to unpack

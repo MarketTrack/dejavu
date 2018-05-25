@@ -5,32 +5,46 @@ import time
 class BaseRecognizer(object):
     def __init__(self, dejavu):
         self.dejavu = dejavu
-        self.Fs = fingerprint.DEFAULT_FS
+        self.Fs = None
 
     def _recognize(self, *data):
         matches = []
         for d in data:
             matches.extend(self.dejavu.find_matches(d, Fs=self.Fs))
-        return self.dejavu.align_matches(matches)
+        return self.dejavu.align_matches(matches, self.Fs)
+
+    def _recognize_multiple(self, maxMatches, minConfidence, *data):
+        matches = []
+        for d in data:
+            matches.extend(self.dejavu.find_matches(d, Fs=self.Fs))
+
+        songs = []
+        for _ in range(maxMatches):
+            songMatch = self.dejavu.align_matches(matches, self.Fs)
+            if songMatch is None or int(songMatch['confidence']) < minConfidence:
+                break
+            songs.append(songMatch)
+            matches = [m for m in matches if m[0] != songMatch['song_id']]
+
+        return songs
 
     def recognize(self):
         pass  # base class does nothing
 
-class FileRecognizer(BaseRecognizer):
+class StreamRecognizer(BaseRecognizer):
     def __init__(self, dejavu):
-        super(FileRecognizer, self).__init__(dejavu)
+        super(StreamRecognizer, self).__init__(dejavu)
 
-    def recognize_file(self, filename):
-        frames, self.Fs, file_hash = decoder.read(filename, self.dejavu.limit)
+    def recognize_stream(self, channels, samplerate, maxMatches, minConfidence):
+        self.Fs = samplerate
 
         t = time.time()
-        match = self._recognize(*frames)
+        matches = {}
+        matches['results'] = self._recognize_multiple(maxMatches, minConfidence, *channels)
         t = time.time() - t
+        matches['match_time'] = t
 
-        if match:
-            match['match_time'] = t
+        return matches
 
-        return match
-
-    def recognize(self, filename):
-        return self.recognize_file(filename)
+    def recognize(self, channels, samplerate, maxMatches=1, minConfidence=0):
+        return self.recognize_stream(channels, samplerate, maxMatches, minConfidence)

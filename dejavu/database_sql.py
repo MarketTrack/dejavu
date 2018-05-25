@@ -85,7 +85,7 @@ class SQLDatabase(Database):
     ) ENGINE=INNODB;""" % (
         SONGS_TABLENAME, Database.FIELD_SONG_ID, Database.FIELD_SONGNAME, FIELD_FINGERPRINTED,
         Database.FIELD_FILE_SHA1,
-        Database.FIELD_SONG_ID, Database.FIELD_SONG_ID, Database.FIELD_SONG_ID,
+        Database.FIELD_SONG_ID, Database.FIELD_FILE_SHA1, Database.FIELD_FILE_SHA1,
     )
 
     # inserts (ignores duplicates)
